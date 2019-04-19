@@ -24,8 +24,8 @@ class MainActivity : AppCompatActivity() {
     private fun initAutoComplete() {
         val adapter = FruitAdapter(
             context = this,
-            resourceId = R.layout.item_suggest,
-            listFruits = listFruits
+            layoutResourceId = R.layout.item_suggest,
+            arrayList = listFruits
         )
 
         tv_autocomplete.setAdapter(adapter)

@@ -14,16 +14,51 @@ import com.example.textview.model.Fruit
 
 class FruitAdapter(
     context: Context,
-    private val resourceId: Int,
-    private val listFruits: ArrayList<Fruit>
+    private val layoutResourceId: Int,
+    private var arrayList: ArrayList<Fruit>
 ) : ArrayAdapter<Fruit>(
     context,
-    resourceId,
-    listFruits
+    layoutResourceId,
+    arrayList
 ) {
+    var mOriginalValues: ArrayList<Fruit>? = null
+
+    override fun getFilter(): Filter {
+        return object : Filter() {
+
+            override fun publishResults(constraint: CharSequence, results: FilterResults) {
+                arrayList = results.values as ArrayList<Fruit>
+                notifyDataSetChanged()
+            }
+
+            override fun performFiltering(constraint: CharSequence?): FilterResults {
+                val results = FilterResults()
+                val filterList = ArrayList<Fruit>()
+
+                if (mOriginalValues == null) {
+                    mOriginalValues = ArrayList(arrayList)
+                }
+                if (constraint == null || constraint.isEmpty()) {
+                    results.count = mOriginalValues!!.size
+                    results.values = mOriginalValues
+                } else {
+                    for (i in mOriginalValues!!.indices) {
+                        val fruit = mOriginalValues!!.get(i)
+                        if (fruit.name.toLowerCase().startsWith(constraint.toString().toLowerCase())) {
+                            filterList.add(fruit)
+                        }
+                    }
+                    results.count = filterList.size
+                    results.values = filterList
+                }
+                return results
+            }
+        }
+    }
+
     @SuppressLint("ViewHolder")
     override fun getView(position: Int, convertView: View?, parent: ViewGroup): View {
-        val view = LayoutInflater.from(context).inflate(resourceId, parent, false)
+        val view = LayoutInflater.from(context).inflate(layoutResourceId, parent, false)
 
         //
         val fruit = getItem(position)
@@ -38,48 +73,14 @@ class FruitAdapter(
     }
 
     override fun getItem(position: Int): Fruit {
-        return listFruits[position]
+        return arrayList[position]
     }
 
     override fun getCount(): Int {
-        return listFruits.size
+        return arrayList.size
     }
 
     override fun getItemId(position: Int): Long {
         return position.toLong()
-    }
-
-    override fun getFilter(): Filter {
-        return object : Filter() {
-            override fun performFiltering(constraint: CharSequence?): FilterResults {
-                val filterResults = FilterResults()
-                if (constraint != null) {
-                    val res = ArrayList<Fruit>()
-                    for (i in 0 until listFruits.size) {
-                        if (listFruits[i].name.toUpperCase().contains(constraint.toString().toUpperCase())) {
-                            res.add(listFruits[i])
-                        }
-                    }
-                    filterResults.values = res
-                    filterResults.count = res.size
-                } else {
-
-                }
-                return filterResults
-            }
-
-            override fun publishResults(constraint: CharSequence?, results: FilterResults?) {
-                results?.let {
-                    if (results.count > 0) {
-                        listFruits.clear()
-                        listFruits.addAll(results.values as ArrayList<Fruit>)
-                        notifyDataSetChanged()
-                    } else {
-                        notifyDataSetInvalidated()
-                    }
-                }
-            }
-
-        }
     }
 }
